@@ -17,16 +17,29 @@ export const parseInstagramHtml = (htmlContent: string): InstagramAccount[] => {
     anchorTags.forEach(anchor => {
       const href = anchor.getAttribute('href');
       if (href && href.startsWith('https://www.instagram.com/')) {
-        const username = href.replace('https://www.instagram.com/', '').replace('/', '');
-        
+        let username = href.replace('https://www.instagram.com/', '');
+
+        // Handle new /_u/ format FIRST (before removing slashes)
+        if (username.startsWith('_u/')) {
+          username = username.substring(3); // Remove '_u/'
+        }
+
+        // Now remove trailing slash if present
+        if (username.endsWith('/')) {
+          username = username.slice(0, -1);
+        }
+
         // Skip non-username hrefs (like "/explore/", etc.)
         if (username === 'explore' || username === 'direct' || !username) {
           return;
         }
-        
+
+        // Normalize profile URL to standard format
+        const profileUrl = `https://www.instagram.com/${username}`;
+
         accounts.push({
           username,
-          profileUrl: href
+          profileUrl
         });
       }
     });
